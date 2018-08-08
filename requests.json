@@ -1,0 +1,31 @@
+{"requests":
+    	{"DummyBuild":
+	{
+		"Machine":"MyVM",
+		"Type":"Build",
+		"Snapshot": "Current State",
+		"User": "myuser",
+		"Password": "mypassword",
+		"Execution":"E:\\WindowsScripts\\build_with_devenv.bat",
+		"Exeargs": "Arg1 Arg2 anotherarg",
+		"Arg1": "C:\\Users\\myuser\\Documents",
+		"Arg2": "whatever",
+		"anotherarg" : "whaterveragain",
+		"Logfiletype": "MSdevenvBuildlog",
+		"LogGuestPOV":"C:\\Users\\myuser\\Documents\\build.log",
+		"LogHostPOV":"/home/myuser/Public/build.log"},
+	"DummyInstall":
+	{
+		"Machine": "MyInstallVM",
+		"Type": "Install",
+		"Snapshot": "StartSnapShot",
+		"User": "myuser",
+		"Password": "mypassord",
+		"Logfiletype": "BootsrapperInstalllog",
+		"LogGuestPOV":"C:\\Users\\myuser\\Documents\\bootstrapper.log",
+		"LogHostPOV":"/home/myuser/Public/bootstrapper.log",
+		"Execution":"E:\\WindowsScripts\\install_an_exe_on_windows.bat",
+		"Installerpath":"E:\\path\\to\\myinstaller.exe",
+		"Exeargs": "User Installerpath LogGuestPOV"}
+   	}
+}
