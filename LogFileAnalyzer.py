@@ -25,7 +25,7 @@ class DevenvBuildLogFileAnalyzer(AbstractBuildLogFileAnalyzer):
 		self.succeeded=list()
 		self.uptodate=list()
 		self.failed=list()
-		self.n_failed=0
+		self.n_failed=-1		#Initialize return code at -1. We will see if we find it !
 		self.n_succeeded=0
 		self.valid=False
 		
@@ -68,8 +68,14 @@ class MsiExecInstallLogFileAnalyzer(AbstractBuildLogFileAnalyzer):
 			for row in self.content:
 				if "Installation success or error status" in row:
 					self.errorstatuscode=re.sub(r'\.','',re.sub(r'.*Installation success or error status: ','',row))
+					try:
+						self.errorstatuscode = int(self.errorstatuscode)
+					except ValueError:
+						print ("Error when analyzing log file: Error Status Code could not be converted to int :{}".format(self.errorstatuscode))
 			if self.errorstatuscode==0:
 				self.valid=True
+			else:
+				print("ErrorStatusCode not zero :{}".format(self.errorstatuscode))
 			print("Logfile {} has been analyzed. statuscode {} ".format(self.m_logfile,self.errorstatuscode))
 		except Exception as e:
 			exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -105,10 +111,18 @@ class BootstrapperInsllerLogFileAnalyzer(AbstractBuildLogFileAnalyzer):
 			self.valid=False 
 			return
 
+class WindowsUpdateInstallLogFileAnalyzer(MsiExecInstallLogFileAnalyzer):
+	def __init__(self,logfile,nativeencoding='utf-16-le'):
+		MsiExecInstallLogFileAnalyzer.__init__(self,logfile,nativeencoding)
+	#TODO implement the difference between a Windosws update installer (*.msu and an Msi installer *.msi) log files
 
-
-def main():
-	#TODO test with dummy log files	
+#def main():
+	##DevenvBuildLogFileAnalyzer("/home/max/Public/build.log",'utf-8')
+	#analyzer=BootstrapperInsllerLogFileAnalyzer("/home/max/Public/bootstrapper.log")
+	#print(analyzer.errorstatuscode)
+	#print(analyzer.valid)
+			
+		
 			
 			
 if __name__ == "__main__":

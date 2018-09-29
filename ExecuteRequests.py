@@ -37,7 +37,10 @@ class MachineRequest(object):
 			self.valid=self.valid and self._checkjsonkey(key)
 		if self.valid:
 			for key in self.jsonkey['Exeargs'].split(' '):
-				self.valid=self.valid and self._checkjsonkey(key)
+				if len(key)>0:
+					self.valid=self.valid and self._checkjsonkey(key)
+				else:
+					print("Warning: Exeargs is empty")
 		try:
 			if not self._doesSnapshotExistForThisMachine(self.jsonkey["Machine"],self.jsonkey["Snapshot"]):
 				self.valid=False
@@ -79,14 +82,15 @@ class MachineRequest(object):
 		self.vm=vbox.find_machine(self.jsonkey["Machine"])
 		
 		if self.vm.session_state==virtualbox.library.SessionState.locked:
-			raise MachineAlreadyInUse
+			import time 
+			print("Machine {} seems to be already in use. Retry to check it out in 10 s".format(self.jsonkey["Machine"]))
+			time.sleep(10.0) 	#We wait 10 s to give a grace time. This can happen as a race condition if the closing of the machine (for the former request) is not finished when we start this request
+			if self.vm.session_state==virtualbox.library.SessionState.locked:
+				raise MachineAlreadyInUse
 		
 		if self.jsonkey["Snapshot"]!="Current State":
 			try:
 				self.vm.lock_machine(self.session,virtualbox.library.LockType.write)
-				
-
-
 				snap=self.session.machine.find_snapshot(self.jsonkey["Snapshot"])
 				print("Checking out snapshot {}".format(snap.name))
 				snapshotcheckoutprogress=self.session.machine.restore_snapshot(snap)
@@ -125,8 +129,12 @@ class MachineRequest(object):
 	def _execute(self):
 		while self.vm.state!=virtualbox.library.MachineState.running:
 			print(self.vm.state)
-		arglst=' '.join([str('"'+self.jsonkey[key]+'"') for key in  self.jsonkey['Exeargs'].split(' ')])
-		lst=[self.jsonkey[key] for key in  self.jsonkey['Exeargs'].split(' ')]
+		if len(self.jsonkey['Exeargs'])>0:
+			arglst=' '.join([str('"'+self.jsonkey[key]+'"') for key in  self.jsonkey['Exeargs'].split(' ')])
+			lst=[self.jsonkey[key] for key in  self.jsonkey['Exeargs'].split(' ')]
+		else:
+			lst=['']
+			arglst=['']
 		execution=str("\"{}\" {}".format(self.jsonkey["Execution"],arglst))
 		print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
 	 	gs=self.session.console.guest.create_session(self.jsonkey['User'],self.jsonkey['Password'])
@@ -152,6 +160,11 @@ class MachineRequest(object):
 				self.analyzer=BootstrapperInsllerLogFileAnalyzer(self.jsonkey['LogHostPOV'])
 				self.requestExecutedSuccessfully=self.analyzer.valid 
 				return self.requestExecutedSuccessfully
+			if self.jsonkey['Logfiletype']=='WindowsUpdateInstalllog':
+				self.analyzer=WindowsUpdateInstallLogFileAnalyzer(self.jsonkey['LogHostPOV'])
+				self.requestExecutedSuccessfully=self.analyzer.valid 
+				return self.requestExecutedSuccessfully
+
 			print("No log file analyzer have been implemented for {}".format(self.jsonkey['LogHostPOV']))
 		else:
 			print("No build log file found for {}".format(self.name))
@@ -220,8 +233,8 @@ def Request(req):
 		else:
 			print ("No \"requests\" entry found in requests.json".format(buildtype))
             		sys.exit(0)
-		if requests[req]:
-			try :
+		try:
+			if requests[req]:
 				typ=requests[req]['Type']
 				if typ=="Build":
 					action=BuildRequest(requests[req],req)
@@ -234,17 +247,34 @@ def Request(req):
 					print("Request type \"{}\" is not implemented".format(typ))
 					return False
 
-			except KeyError:
-				print("No Type entry in {} requests description of requests.json".format(req))
-				return False
+		except KeyError:
+			print("No Type entry in {} requests description of requests.json".format(req))
+			return False
 
 			
         	else:
             		print ("{} not found in requests.json".format(buildtype))
 
 
-
-
+def ListAllRequestNameAvailable():
+	"""
+	This will list all request described in the json files, for the case where the user did not specified any !
+	"""
+	with open("requests.json","r") as read_file:
+        	data=json.load(read_file)
+		try:
+			for key in data["requests"].keys():
+				print(key)
+				try: 
+					print("\t{}".format(data["requests"][key]["Description"]))
+				except KeyError:
+					pass
+				
+			#print("\n".join(data["requests"].keys()))
+		except KeyError:
+			print("Did not find a valid 'requests' entry in 'builds.json'")
+		
+	
 
 
 
@@ -360,6 +390,12 @@ def main(argv):
 		requestlist=argv[argv.index(arg)+1:]
 	else:
 		requestlist=argv
+
+	if len(requestlist)==0: 	#The user did not enter a request, we will list all existing request in the file"
+		ListAllRequestNameAvailable()
+		sys.exit(1)
+		
+
 	
 	for req in requestlist:
 		print( "Request {} Status {}".format(req,str(bcolors.Green+"OK"+bcolors.NC) if Request(req)==True else str(bcolors.Red+"NOK"+bcolors.NC)))

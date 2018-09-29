@@ -14,6 +14,19 @@
 		"Logfiletype": "MSdevenvBuildlog",
 		"LogGuestPOV":"C:\\Users\\myuser\\Documents\\build.log",
 		"LogHostPOV":"/home/myuser/Public/build.log"},
+	"CompileClementine":
+	{
+		"Machine":"Neon1804",
+		"Description":"Install all dependencies, compile and install Clementine (git latest) on a KDE-Neon 1804 fresh installation",
+		"Type":"Build",
+		"Snapshot": "FreshInstall",
+		"User": "max",
+		"Password": "revQklo9*",
+		"Execution":"/media/max/zalman/Projects/RequestsScripts/Clementine.sh",
+		"Exeargs": "",
+		"Logfiletype": "MakeBuildLog",
+		"LogGuestPOV":"/media/max/zalman/Projects/RequestsScripts/RequestLogs/Clementine-build.log",
+		"LogHostPOV":"/home/max/Projects/RequestsScripts/RequestLogs/Clementine-build.log"},
 	"DummyInstall":
 	{
 		"Machine": "MyInstallVM",
@@ -27,5 +40,17 @@
 		"Execution":"E:\\WindowsScripts\\install_an_exe_on_windows.bat",
 		"Installerpath":"E:\\path\\to\\myinstaller.exe",
 		"Exeargs": "User Installerpath LogGuestPOV"}
-   	}
+   	},
+   	"CompileClementine":
+   	{
+		"Machine":"NeonTestAndKill",
+		"Type":"Build",
+		"Snapshot": "Current State",
+		"User": "max",
+		"Password": "revQklo9*",
+		"Execution":"/home/max/Public/RequestsScripts/CompileClementine.sh",
+		"Exeargs": "",
+		"Logfiletype": "MSdevenvBuildlog",
+		"LogGuestPOV":"/home/max/Public/ClementineCompile.log",
+		"LogHostPOV":"/home/max/Public/ClementineCompile.log"}
 }
