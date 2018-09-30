@@ -45,12 +45,9 @@ class MachineRequest(object):
 			if not self._doesSnapshotExistForThisMachine(self.jsonkey["Machine"],self.jsonkey["Snapshot"]):
 				self.valid=False
 				raise SnapshotNotFound()
-				self._handleExceptions()
 		except Exception as e:
-			exc_type, exc_obj, exc_tb = sys.exc_info()
-			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print("Exception {} when using machine {}		{} {}".format(exc_type,self.jsonkey["Machine"], fname, exc_tb.tb_lineno))
-			self.valid=False 
+			self._handleExceptions(e)
+			
 	def _doesSnapshotExistForThisMachine(self,machine,snapshot):
 		if snapshot=="Current State":
 			return True
@@ -78,69 +75,96 @@ class MachineRequest(object):
 		return True
 		
 	def _startthevm(self):
-		self.session=virtualbox.Session()
-		self.vm=vbox.find_machine(self.jsonkey["Machine"])
-		
-		if self.vm.session_state==virtualbox.library.SessionState.locked:
-			import time 
-			print("Machine {} seems to be already in use. Retry to check it out in 10 s".format(self.jsonkey["Machine"]))
-			time.sleep(10.0) 	#We wait 10 s to give a grace time. This can happen as a race condition if the closing of the machine (for the former request) is not finished when we start this request
+		try:
+			self.session=virtualbox.Session()
+			self.vm=vbox.find_machine(self.jsonkey["Machine"])
 			if self.vm.session_state==virtualbox.library.SessionState.locked:
-				raise MachineAlreadyInUse
-		
-		if self.jsonkey["Snapshot"]!="Current State":
-			try:
+				import time 
+				print("Machine {} seems to be already in use. Retry to check it out in 10 s".format(self.jsonkey["Machine"]))
+				time.sleep(10.0) 	#We wait 10 s to give a grace time. This can happen as a race condition if the closing of the machine (for the former request) is not finished when we start this request
+				if self.vm.session_state==virtualbox.library.SessionState.locked:
+					raise MachineAlreadyInUse
+			
+			if self.jsonkey["Snapshot"]!="Current State":
 				self.vm.lock_machine(self.session,virtualbox.library.LockType.write)
 				snap=self.session.machine.find_snapshot(self.jsonkey["Snapshot"])
 				print("Checking out snapshot {}".format(snap.name))
 				snapshotcheckoutprogress=self.session.machine.restore_snapshot(snap)
 				timeout=snapshotcheckoutprogress.wait_for_completion(60000)
+				self.session.unlock_machine()
 				if timeout:
 					raise ProblemCheckingOutSnapshot
-				self.session.unlock_machine()
-			except Exception as e:
-    				exc_type, exc_obj, exc_tb = sys.exc_info()
-				fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-				print(exc_type, fname, exc_tb.tb_lineno)
-				print("Exception while checking out the right snapshot. Exiting")
-				sys.exit(1)
 
-
-		self.progress=self.vm.launch_vm_process(self.session,'gui','')
-		timeout=self.progress.wait_for_completion(30000)
-		if timeout:
-			print("Timeout while starting machine")
-			raise ProblemOpenningSession
-		pass
+			self.progress=self.vm.launch_vm_process(self.session,'gui','')
+			timeout=self.progress.wait_for_completion(30000)
+			if timeout:
+				print("Timeout while starting machine")
+				raise ProblemOpenningSession
+			pass
+		except Exception as e:
+			self._handleExceptions(e)
 			
 
 	
 	def _closethevm(self):
-		self.session.console.pause()
-		while self.vm.state!=virtualbox.library.MachineState.paused:
-			time.sleep(1.0)
-			print("Waiting for machine {} to pause. Current state is {}".format(self.jsonkey["Machine"],self.vm.state))
-        	savestateprogress=self.session.machine.save_state()
-        	timeout=savestateprogress.wait_for_completion(60000)
-        	if timeout: 
-			raise ProblemClosingMachine
-        	print("Machine {} closed".format(self.jsonkey["Machine"]))
-	
+		try:
+			self.session.console.pause()
+			while self.vm.state!=virtualbox.library.MachineState.paused:
+				time.sleep(1.0)
+				print("Waiting for machine {} to pause. Current state is {}".format(self.jsonkey["Machine"],self.vm.state))
+			savestateprogress=self.session.machine.save_state()
+			timeout=savestateprogress.wait_for_completion(60000)
+			if timeout: 
+				raise ProblemClosingMachine
+			print("Machine {} closed".format(self.jsonkey["Machine"]))
+		except Exception as e:
+			self._handleExceptions(e)
+			
 	def _execute(self):
-		while self.vm.state!=virtualbox.library.MachineState.running:
-			print(self.vm.state)
-		if len(self.jsonkey['Exeargs'])>0:
-			arglst=' '.join([str('"'+self.jsonkey[key]+'"') for key in  self.jsonkey['Exeargs'].split(' ')])
-			lst=[self.jsonkey[key] for key in  self.jsonkey['Exeargs'].split(' ')]
-		else:
-			lst=['']
-			arglst=['']
-		execution=str("\"{}\" {}".format(self.jsonkey["Execution"],arglst))
-		print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
-	 	gs=self.session.console.guest.create_session(self.jsonkey['User'],self.jsonkey['Password'])
-	 	process,stdout,stderr=gs.execute(self.jsonkey["Execution"],lst)
-	 	print (stdout)
-	 	print (process.exit_code)
+		try:
+			while self.vm.state!=virtualbox.library.MachineState.running:
+				print(self.vm.state)
+			if len(self.jsonkey['Exeargs'])>0:
+				arglst=' '.join([str('"'+self.jsonkey[key]+'"') for key in  self.jsonkey['Exeargs'].split(' ')])
+				lst=[self.jsonkey[key] for key in  self.jsonkey['Exeargs'].split(' ')]
+			else:
+				lst=['']
+				arglst=['']
+			self.debug=False
+			try:
+				if (self.jsonkey["Debug"]=="yes"):
+					self.debug=True
+					print("We will execute this requests in debug mode. (we will fire the scrip in a console). Only valid for Bashscript requests")
+			except KeyError:
+				pass			
+			execution=str("\"{}\" {}".format(self.jsonkey["Execution"],arglst))
+			print("Will create session")
+			gs=self.session.console.guest.create_session(self.jsonkey['User'],self.jsonkey['Password'])
+			gs_state = gs.waitFor(vbox.constants.GuestSessionWaitForFlag_Start, 0)
+			print (gs_state)
+			time.sleep(2.0)			#wait 2.0 seconds to avoid race donditions
+			print("Will launch")
+			print(dir(gs))
+			process,stdout,stderr=gs.execute('/usr/bin/konsole',[''])
+			print("launched")
+			if self.debug:		#if debug we prepend konsole -e to the list, so that a konsole pops up with the script inside
+				print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
+				lst.insert(0,self.jsonkey["Execution"])
+				print(lst)
+				#process,stdout,stderr=gs.execute("konsole -e",lst)
+			else:
+				print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
+				print(lst)
+				#process,stdout,stderr=gs.execute(self.jsonkey["Execution"],lst)
+		except virtualbox.library.VBoxErrorIprtError as e:
+			print("Runtime subsystem error...")
+			self.valid=False
+			return self.valid
+				
+			print (stdout)
+			print (process.exit_code)
+		except Exception as e:
+			self._handleExceptions(e)
 	 	
 	def _analyzelogfile(self):
 		import os.path
@@ -164,66 +188,57 @@ class MachineRequest(object):
 				self.analyzer=WindowsUpdateInstallLogFileAnalyzer(self.jsonkey['LogHostPOV'])
 				self.requestExecutedSuccessfully=self.analyzer.valid 
 				return self.requestExecutedSuccessfully
+			if self.jsonkey['Logfiletype']=='BashScriptlog':
+				self.analyzer=BashScriptAnalyzer(self.jsonkey['LogHostPOV'])
+				self.requestExecutedSuccessfully=self.analyzer.valid 
+				return self.requestExecutedSuccessfully
 
 			print("No log file analyzer have been implemented for {}".format(self.jsonkey['LogHostPOV']))
 		else:
 			print("No build log file found for {}".format(self.name))
 		return self.requestExecutedSuccessfully
 	
-	def _handleExceptions(self):
-		try: 
-			pass
-		except SnapshotNotFound:
+	def _handleExceptions(self,e):
+		self.valid=False 
+		exc_type, exc_obj, exc_tb = sys.exc_info()
+		if exc_type==SnapshotNotFound:
 			print ("Snapshot {} not found for the machine {}".format(str(self.jsonkey["Snapshot"]),str(self.jsonkey["Machine"])))
-		except MachineAlreadyInUse:
+			return self.valid
+		if exc_type==MachineAlreadyInUse:
 			print("The machine {} appears to be locked by another sesssion!".format(self.jsonkey["Machine"]))
-		except ProblemOpenningSession:
+			return self.valid
+		if exc_type==ProblemOpenningSession:
 			print("Timeout when openning session on machine {}".format(self.jsonkey["Machine"]))
-		except ProblemClosingMachine:
+			return self.valid
+		if exc_type==ProblemClosingMachine:
 			print("A problem has been encoutered while saving the state of the machine {}".format(self.jsonkey["Machine"]))
+			return self.valid
+		
+		
+		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+		print("Exception {} when using machine {}		{} {}".format(exc_type,self.jsonkey["Machine"], fname, exc_tb.tb_lineno))
 	
 
 class BuildRequest(MachineRequest):
 	def __init__(self,jsonkey,requestname):
 		MachineRequest.__init__(self,jsonkey,requestname)
-		try:
-			if not self.valid:
-				return
-			super(BuildRequest,self)._startthevm()
-			super(BuildRequest,self)._execute()
-			super(BuildRequest,self)._closethevm()
-			super(BuildRequest,self)._analyzelogfile()
-			super(BuildRequest,self)._handleExceptions()
-			
-		except Exception as e:
-			exc_type, exc_obj, exc_tb = sys.exc_info()
-			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print("Exception {} when using machine {}		{} {}".format(exc_type,self.jsonkey["Machine"], fname, exc_tb.tb_lineno))
-			self.valid=False 
-			
+		if not self.valid:
+			return
+		super(BuildRequest,self)._startthevm() 
+		super(BuildRequest,self)._execute() 
+		super(BuildRequest,self)._closethevm() 
+		super(BuildRequest,self)._analyzelogfile() 
 
-
+			
 class InstallRequest(MachineRequest):
 	def __init__(self,jsonkey,requestname):
 		MachineRequest.__init__(self,jsonkey,requestname)
-		try:
-			if not self.valid:
-				return
-			super(InstallRequest,self)._startthevm()
-			super(InstallRequest,self)._execute()
-			super(InstallRequest,self)._closethevm()
-			super(InstallRequest,self)._analyzelogfile()
-			super(InstallRequest,self)._handleExceptions()
-			
-		except Exception as e:
-			exc_type, exc_obj, exc_tb = sys.exc_info()
-			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print("Exception {} when using machine {}		{} {}".format(exc_type,self.jsonkey["Machine"], fname, exc_tb.tb_lineno))
-			self.valid=False 
-			self.valid
-
-
-
+		if not self.valid:
+			return
+		super(InstallRequest,self)._startthevm() 
+		super(InstallRequest,self)._execute() 
+		super(InstallRequest,self)._closethevm() 
+		super(InstallRequest,self)._analyzelogfile() 
 
 def Request(req):
 	with open("requests.json","r") as read_file:
