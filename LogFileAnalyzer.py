@@ -116,6 +116,31 @@ class WindowsUpdateInstallLogFileAnalyzer(MsiExecInstallLogFileAnalyzer):
 		MsiExecInstallLogFileAnalyzer.__init__(self,logfile,nativeencoding)
 	#TODO implement the difference between a Windosws update installer (*.msu and an Msi installer *.msi) log files
 
+
+class BashScriptAnalyzer(AbstractBuildLogFileAnalyzer):
+	def __init__(self,logfile,nativeencoding='utf-8'):
+		AbstractBuildLogFileAnalyzer.__init__(self,logfile,nativeencoding)
+		if not self.logfileexist:
+			return 
+		try: 
+			self.errorstatuscode=-1
+			print("Analyzing content of logfile {}".format(self.m_logfile))
+			self.valid=False 
+			for row in self.content:
+				if "Test completed successfully" in row:
+					self.errorstatuscode=0
+					self.valid=True 
+					return			
+			return
+		except Exception as e:
+			exc_type, exc_obj, exc_tb = sys.exc_info()
+			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+			print("Exception {} when analyzing {}		{} {}".format(exc_type,self.m_logfile, fname, exc_tb.tb_lineno))
+			self.valid=False 
+			return
+
+
+
 #def main():
 	##DevenvBuildLogFileAnalyzer("/home/max/Public/build.log",'utf-8')
 	#analyzer=BootstrapperInsllerLogFileAnalyzer("/home/max/Public/bootstrapper.log")
