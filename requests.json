@@ -14,6 +14,21 @@
 		"Logfiletype": "MSdevenvBuildlog",
 		"LogGuestPOV":"C:\\Users\\myuser\\Documents\\build.log",
 		"LogHostPOV":"/home/myuser/Public/build.log"},
+	"HelloWorldLinuxMachine":
+	{
+		"Machine":"Neon1804",
+		"Type":"Build",
+		"Snapshot": "Current State",
+		"User": "test",
+		"Password": "kimjongun",
+		"Execution":"/media/max/zalman/Projects/Projets/VMRequests/helloworld_in_linux_machine.sh",
+		"Exeargs": "Arg1 Arg2 anotherarg",
+		"Arg1": "C:\\Users\\myuser\\Documents",
+		"Arg2": "whatever",
+		"anotherarg" : "whaterveragain",
+		"Logfiletype": "MSdevenvBuildlog",
+		"LogGuestPOV":"/media/max/zalman/Projects/Projets/VMRequests/test.log",
+		"LogHostPOV":"/media/max/zalman/Projects/Projets/VMRequests/test.log"},
 	"CompileClementine":
 	{
 		"Machine":"Neon1804",

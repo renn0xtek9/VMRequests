@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 import sys
 import virtualbox
 import json
@@ -140,22 +140,23 @@ class MachineRequest(object):
 			execution=str("\"{}\" {}".format(self.jsonkey["Execution"],arglst))
 			print("Will create session")
 			gs=self.session.console.guest.create_session(self.jsonkey['User'],self.jsonkey['Password'])
-			gs_state = gs.waitFor(vbox.constants.GuestSessionWaitForFlag_Start, 0)
-			print (gs_state)
+			#gs_state = gs.waitFor(vbox.constants.GuestSessionWaitForFlag_Start, 0)
+			#print (gs_state)
 			time.sleep(2.0)			#wait 2.0 seconds to avoid race donditions
 			print("Will launch")
-			print(dir(gs))
-			process,stdout,stderr=gs.execute('/usr/bin/konsole',[''])
-			print("launched")
+			#print(dir(gs))
+			#process,stdout,stderr=gs.execute('/usr/bin/konsole',[''])
 			if self.debug:		#if debug we prepend konsole -e to the list, so that a konsole pops up with the script inside
 				print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
 				lst.insert(0,self.jsonkey["Execution"])
 				print(lst)
-				#process,stdout,stderr=gs.execute("konsole -e",lst)
+				process,stdout,stderr=gs.execute("konsole -e",lst)
+				print("launched")
 			else:
 				print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
 				print(lst)
-				#process,stdout,stderr=gs.execute(self.jsonkey["Execution"],lst)
+				process,stdout,stderr=gs.execute(self.jsonkey["Execution"],lst)
+				print("launched")
 		except virtualbox.library.VBoxErrorIprtError as e:
 			print("Runtime subsystem error...")
 			self.valid=False
