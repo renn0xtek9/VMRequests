@@ -50,6 +50,32 @@ Mandatory argument, are
 Currently supported *"Logfiletype"* option are :
 * `MSdevenvBuildlog`: This analyze a log file comming from *devenv.exe* (alias Microsoft Visual Studio). It will declare itself not valid (```self.valid=False```) if the last line says that there is more than 0 Failed.
 * `MSIexecInstalllog`: This analyze a log file comming from *msiexec.exe* (alias the programm that launches the installation of an msi installer. It will declare itself not valid if the return code is not correct
-* `BootsrapperInstalllog`: Same thing as MSIexecInstalllog but with an *.exe* installer instead of an *.msi*.
+* `BootsrapperInstalllog`: Same thing as MSIexecInstalllog but with an *.exe* installer instead of an *.msi*.  
+
+
+## How can I test this shit !?^*$%&* ?
+On ubuntu: 
+    #Clone the git repository
+    git clone https://github.com/renn0xtek9/VMRequests.git 
+    cd VMRequests 
+
+There if not done already you should install virtualbox and it SDK.
+    ./install_virtualbox_on_ubuntu.sh
+    ./install_virtualbox_sdk_on_ubuntu.sh
+    
+At this point you should have the necessary install!. *DO CHECK WHAT THE SECOND SCRIPT TOLD YOU ABOUT THE BASRHC AND DO IT HUH!*  
+Now there come the tricky part. 
+You need to create a virtual machine in Virtualbox. So create a machine and install Linux in there 
+Your host need to share files with the guest. Ideally over nfs. So install confiugre and share a nfs-share between your host (the server) and guest (the client). This is out of scope here 
+### Edit the requests.json
+In my case the folder where VMRequests lay in is /home/max/Projects/Projets
+And in my guest machine, this is reachable via /media/max/zalman/Projects/Projets/ 
+So you need to replace those two entries by what fit to you configuration
+Finally in the virtual machine that you have created, you need to create a user named "test" with a password "kimjongun" or alternatively edit agein the requests.json and replace those entries by what fits to your configurtion.
+Your machine must have a snapshot named "FreshInstall". Or alternatively replace "FreshInstall" by "Current State" in requests.json.  
+Once all of this is done:
+    ExecuteRequests.py HelloWorldLinuxMachine
+will execute a helloworld script in the virtual machine that you have created...
+
 
 
