@@ -28,7 +28,7 @@
 		"anotherarg" : "whaterveragain",
 		"Logfiletype": "MSdevenvBuildlog",
 		"LogGuestPOV":"/media/max/zalman/Projects/Projets/VMRequests/test.log",
-		"LogHostPOV":"/media/max/zalman/Projects/Projets/VMRequests/test.log"},
+		"LogHostPOV":"/home/max/Projects/Projets/VMRequests/test.log"},
 	"CompileClementine":
 	{
 		"Machine":"Neon1804",
