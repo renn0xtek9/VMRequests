@@ -59,7 +59,7 @@ Currently supported *"Logfiletype"* option are :
 * `MSdevenvBuildlog`: This analyze a log file comming from *devenv.exe* (alias Microsoft Visual Studio). It will declare itself not valid (`self.valid=False`) if the last line says that there is more than 0 Failed.
 * `MSIexecInstalllog`: This analyze a log file comming from *msiexec.exe* (alias the programm that launches the installation of an msi installer. It will declare itself not valid if the return code is not correct
 * `BootsrapperInstalllog`: Same thing as MSIexecInstalllog but with an *.exe* installer instead of an *.msi*
-
+* `MakeBuildAnalyzer`: Thie analyzes output of make command 
 
 ## How can I test this shit !?^*$%&* ?
 On ubuntu: 
