@@ -136,9 +136,9 @@ class MachineRequest(object):
 					self.debug=True
 					print("We will execute this requests in debug mode. (we will fire the scrip in a console). Only valid for Bashscript requests")
 			except KeyError:
-				pass			
+				pass
 			execution=str("\"{}\" {}".format(self.jsonkey["Execution"],arglst))
-			print("Will create session")
+			#print("Will create session")
 			gs=self.session.console.guest.create_session(self.jsonkey['User'],self.jsonkey['Password'])
 			#gs_state = gs.waitFor(vbox.constants.GuestSessionWaitForFlag_Start, 0)
 			#print (gs_state)
@@ -151,19 +151,21 @@ class MachineRequest(object):
 				lst.insert(0,self.jsonkey["Execution"])
 				print(lst)
 				process,stdout,stderr=gs.execute("konsole -e",lst)
-				print("launched")
+				#print("launched")
 			else:
 				print ("{} will execute \n{}".format(self.jsonkey["Machine"],execution))
-				print(lst)
+				#print(lst)
+				print(self.jsonkey["Execution"]+" "+" ".join(lst))
 				process,stdout,stderr=gs.execute(self.jsonkey["Execution"],lst)
-				print("launched")
+				#print("launched")
+			print (stdout)
+			print (process.exit_code)
 		except virtualbox.library.VBoxErrorIprtError as e:
 			print("Runtime subsystem error...")
+			print(e)
 			self.valid=False
 			return self.valid
 				
-			print (stdout)
-			print (process.exit_code)
 		except Exception as e:
 			self._handleExceptions(e)
 	 	
@@ -191,6 +193,10 @@ class MachineRequest(object):
 				return self.requestExecutedSuccessfully
 			if self.jsonkey['Logfiletype']=='BashScriptlog':
 				self.analyzer=BashScriptAnalyzer(self.jsonkey['LogHostPOV'])
+				self.requestExecutedSuccessfully=self.analyzer.valid 
+				return self.requestExecutedSuccessfully
+			if self.jsonkey['Logfiletype']=='MakeBuildLog':
+				self.analyzer=MakeBuildAnalyzer(self.jsonkey['LogHostPOV'])
 				self.requestExecutedSuccessfully=self.analyzer.valid 
 				return self.requestExecutedSuccessfully
 

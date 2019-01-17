@@ -139,6 +139,30 @@ class BashScriptAnalyzer(AbstractBuildLogFileAnalyzer):
 			self.valid=False 
 			return
 
+class MakeBuildAnalyzer(AbstractBuildLogFileAnalyzer):
+	#@class MakeBuildAnalyzer
+	#@brief this class analyze the output of a make command
+	def __init__(self,logfile,nativeencoding='utf-8'):
+		AbstractBuildLogFileAnalyzer.__init__(self,logfile,nativeencoding)
+		if not self.logfileexist:
+			return 
+		try: 
+			self.errorstatuscode=-1
+			print("Analyzing content of logfile {}".format(self.m_logfile))
+			self.valid=False 
+			#To detect wetherer success or not. we assume that if the last line start with [100%] Built target, then it is a success
+			lastrow=self.content[len(self.content)-1]			
+			if "[100%] Built target" in lastrow:
+				self.errorstatuscode=0
+				self.valid=True 
+				return			
+			return
+		except Exception as e:
+			exc_type, exc_obj, exc_tb = sys.exc_info()
+			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+			print("Exception {} when analyzing {}		{} {}".format(exc_type,self.m_logfile, fname, exc_tb.tb_lineno))
+			self.valid=False 
+			return
 
 
 #def main():
