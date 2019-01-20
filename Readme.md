@@ -47,7 +47,7 @@ Mandatory argument, are
 * `Snapshot`: which snapshot should be cheked out. Type "Current State" if you don't want / don't have a Snapshot. **WARNING** bare in mind that if you enter a snapshot here, you **WILL LOOSE** the data you have in your current state.
 * `Type`: the type of request you want to execute. Right now only "Build" and "Install" are supported. You can easily add more request type by subclassing *MachineRequest* in *ExecuteRequest.py*
 * `User`: the user name (in the Guest OS) under which the execution will take place
-* `Password`: password for that user
+* `Password`: password for that user. You can let it empty (for security reason) and you will be prompted for it at runtime
 * `LogGuestPOV`: the place of the logfile of the *Execution* in the **GUEST OS** filesystem!
 * `LogHostPOV`: The place of the logfile of the *Execution* in the **HOST OS** filesystem! **WARNING** those are here to inform *ExecuteRequest.py* on where to find those file. This is the responsability of the *Execution* script (hence yours...) to make sure that those two file match!  
 * `Logfiletype`: The type of logfile type, so that *ExecuteRequest.py* knows how to parse the result and find out if succcess or failure. You can easily add your custom type by subclassing *AbstractBuildLogFileAnalyzer* from *LogFileAnalyzer.py*. See under for a list of log file analyzer
@@ -59,6 +59,7 @@ Currently supported *"Logfiletype"* option are :
 * `MSdevenvBuildlog`: This analyze a log file comming from *devenv.exe* (alias Microsoft Visual Studio). It will declare itself not valid (`self.valid=False`) if the last line says that there is more than 0 Failed.
 * `MSIexecInstalllog`: This analyze a log file comming from *msiexec.exe* (alias the programm that launches the installation of an msi installer. It will declare itself not valid if the return code is not correct
 * `BootsrapperInstalllog`: Same thing as MSIexecInstalllog but with an *.exe* installer instead of an *.msi*
+* `BashScriptAnalyzer`: Analyze the ouptut of a bash script
 * `MakeBuildAnalyzer`: Thie analyzes output of make command 
 
 ## How can I test this shit !?^*$%&* ?

@@ -1,0 +1,82 @@
+{"requests":
+    	{"CompileClementine":
+	{
+		"Machine":"Neon1804",
+		"Description":"Install all dependencies, compile and install Clementine (git latest) on a KDE-Neon 1804 fresh installation",
+		"Type":"Build",
+		"Snapshot": "Freshinstall_GA22_SharedFolder",
+		"User": "max",
+		"Password": "",
+		"Execution":"/media/sf_Public/RequestsScripts/Scripts/CompileClementine.sh",
+		"Exeargs": "Password LogGuestPOV",
+		"Logfiletype": "MakeBuildLog",
+		"LogGuestPOV":"/media/sf_Public/RequestsScripts/RequestLogs/Clementine-build.log",
+		"LogHostPOV":"/home/max/Public/RequestsScripts/RequestLogs/Clementine-build.log"},
+	"CompileClementineQt5":
+	{
+		"Machine":"Neon1804",
+		"Description":"Install all dependencies, compile and install Clementine (git latest) on a KDE-Neon 1804 fresh installation",
+		"Type":"Build",
+		"Debug":"no",
+		"Snapshot": "Freshinstall_GA22_SharedFolder",
+		"User": "max",
+		"Password": "",
+		"Execution":"/media/sf_Public/RequestsScripts/Scripts/CompileClementine-qt5.sh",
+		"Exeargs": "Password LogGuestPOV",
+		"Logfiletype": "MakeBuildLog",
+		"LogGuestPOV":"/media/sf_Public/RequestsScripts/RequestLogs/Clementine-build.log",
+		"LogHostPOV":"/home/max/Public/RequestsScripts/RequestLogs/Clementine-build.log"},
+	"TestClementine":
+	{
+		"Machine":"Neon1804",
+		"Description":"Test usability of Clementine",
+		"Type":"Build",
+		"Snapshot": "Current State",
+		"User": "max",
+		"Password": "",
+		"Execution":"/media/sf_Public/RequestsScripts/Scripts/TestClementine.sh",
+		"Exeargs": "Password LogGuestPOV",
+		"Logfiletype": "BashScriptlog",
+		"LogGuestPOV":"/media/sf_Public/RequestsScripts/RequestLogs/Clementine-test.log",
+		"LogHostPOV":"/home/max/Public/RequestsScripts/RequestLogs/Clementine-test.log"},
+	"DummyRequestOnNeon1804Machine":
+	{
+		"Machine":"Neon1804",
+		"Description":"Make execute a dummy script on an ubuntu 1804 machine",
+		"Type":"Build",
+		"Snapshot": "Freshinstall_GA22_SharedFolder",
+		"User": "max",
+		"Password": "",
+		"Execution":"/media/sf_Public/RequestsScripts/Scripts/DummyLinuxScript.sh",
+		"Exeargs": "",
+		"Logfiletype": "MakeBuildLog",
+		"LogGuestPOV":"/media/sf_Public/RequestsScripts/RequestLogs/DummyLinuxScript.log",
+		"LogHostPOV":"/home/max/Public/RequestsScripts/RequestLogs/DummyLinuxScript.log"},
+	"DummyRequestOnUbuntu1804Machine":
+	{
+		"Machine":"Ubuntu1804",
+		"Description":"Make execute a dummy script on an ubuntu 1804 machine",
+		"Type":"Build",
+		"Snapshot": "Freshinstall_GA22_SharedFolder",
+		"User": "maxime",
+		"Password": "",
+		"Execution":"/media/sf_Public/RequestsScripts/DummyLinuxScript.sh",
+		"Exeargs": "",
+		"Logfiletype": "MakeBuildLog",
+		"LogGuestPOV":"/media/sf_Public/RequestsScripts/DummyLinuxScript.log",
+		"LogHostPOV":"/home/max/Public/RequestsScripts/DummyLinuxScript.log"},
+	"DummyInstall":
+	{
+		"Machine": "MyInstallVM",
+		"Type": "Install",
+		"Snapshot": "StartSnapShot",
+		"User": "myuser",
+		"Password": "mypassord",
+		"Logfiletype": "BootsrapperInstalllog",
+		"LogGuestPOV":"C:\\Users\\myuser\\Documents\\bootstrapper.log",
+		"LogHostPOV":"/home/myuser/Public/bootstrapper.log",
+		"Execution":"E:\\WindowsScripts\\install_an_exe_on_windows.bat",
+		"Installerpath":"E:\\path\\to\\myinstaller.exe",
+		"Exeargs": "User Installerpath LogGuestPOV"}
+   	}
+}

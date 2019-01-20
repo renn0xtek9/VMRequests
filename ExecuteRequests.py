@@ -122,6 +122,10 @@ class MachineRequest(object):
 			
 	def _execute(self):
 		try:
+			#if the user has not entered a password (for security reason probably)
+			if self.jsonkey['Password']=="":
+				import getpass
+				self.jsonkey['Password']=getpass.getpass("Enter Password for user {} of machine {}".format(self.jsonkey['User'],self.jsonkey['Machine']))
 			while self.vm.state!=virtualbox.library.MachineState.running:
 				print(self.vm.state)
 			if len(self.jsonkey['Exeargs'])>0:
