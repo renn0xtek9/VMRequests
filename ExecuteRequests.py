@@ -5,7 +5,7 @@ import json
 import time
 import os
 import getopt
-from LogFileAnalyzer import DevenvBuildLogFileAnalyzer, MsiExecInstallLogFileAnalyzer, BootstrapperInsllerLogFileAnalyzer
+from LogFileAnalyzer import DevenvBuildLogFileAnalyzer, MsiExecInstallLogFileAnalyzer, BootstrapperInsllerLogFileAnalyzer, MakeBuildAnalyzer, BashScriptAnalyzer
 
 
 
